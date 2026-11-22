@@ -10,7 +10,8 @@ $create_roles = $db_connection->prepare(
 	"CREATE OR REPLACE TABLE Roles(
         role_id int NOT NULL AUTO_INCREMENT,
         role_type varchar(255) NOT NULL,
-        PRIMARY KEY(role_id));");
+        PRIMARY KEY(role_id),
+        UNIQUE KEY uq_roles_type (role_type)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 $create_roles->execute();
 $create_roles->close();
 

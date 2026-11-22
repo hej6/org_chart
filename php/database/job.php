@@ -8,7 +8,8 @@ $db_connection->query(
     "CREATE TABLE `Job` (
         `job_id` INT(11) NOT NULL AUTO_INCREMENT,
         `job_title` VARCHAR(255) NOT NULL,
-        PRIMARY KEY (`job_id`)
+        PRIMARY KEY (`job_id`),
+        UNIQUE KEY `uq_job_title` (`job_title`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 );
 

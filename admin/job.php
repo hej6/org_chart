@@ -108,6 +108,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (mysqli_sql_exception $e) {
             if ((int) $e->getCode() === 1451) {
                 $error = 'This Job is used by another record and cannot be deleted.';
+            } elseif ((int) $e->getCode() === 1062) {
+                $error = 'A Job with that title already exists.';
             } else {
                 error_log($e->getMessage());
                 $error = 'The change could not be saved. Please try again.';

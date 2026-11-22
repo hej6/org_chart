@@ -9,7 +9,8 @@ $db_connection->query(
     "CREATE TABLE `Building` (
         `building_id` INT(11) NOT NULL AUTO_INCREMENT,
         `building_name` VARCHAR(100) NOT NULL,
-        PRIMARY KEY (`building_id`)
+        PRIMARY KEY (`building_id`),
+        UNIQUE KEY `uq_building_name` (`building_name`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 );
 

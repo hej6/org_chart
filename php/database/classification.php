@@ -10,7 +10,8 @@ $create_classification = $db_connection->prepare(
 	"CREATE OR REPLACE TABLE Classification(
         class_id int(11) NOT NULL AUTO_INCREMENT,
         class_name varchar(100) NOT NULL,
-        PRIMARY KEY(class_id));");
+        PRIMARY KEY(class_id),
+        UNIQUE KEY uq_classification_name (class_name)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 $create_classification->execute();
 $create_classification->close();
 

@@ -12,7 +12,8 @@ $create_credentials = $db_connection->prepare(
 	    user_id int NOT NULL,
         password_salted varchar(255) NOT NULL,
 	    PRIMARY KEY(username),
-        FOREIGN KEY(user_id) REFERENCES Users(user_id));");
+        UNIQUE KEY uq_credentials_user (user_id),
+        FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 $create_credentials->execute();
 $create_credentials->close();
 

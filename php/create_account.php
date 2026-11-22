@@ -21,11 +21,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $street = $_POST['street'];
     $street_additional = $_POST['street_additional'];
     $city = $_POST['city'];
-    $state_code = $_POST['state'];
-    $post_code = $_POST['zip'];
+    $state_code = strtoupper(trim($_POST['state']));
+    $post_code = trim($_POST['zip']);
 
     if (empty($first_name) || empty($last_name) || empty($email) || empty($phone) || empty($username) || empty($password) ) {
         echo "All fields are required.";
+        exit();
+    }
+
+    // Optional address fields: store NULL when left blank
+    $state_code = $state_code === '' ? null : $state_code;
+    $post_code = $post_code === '' ? null : $post_code;
+
+    // Match the Contacts column sizes: phone VARCHAR(20), state CHAR(2), post_code CHAR(5)
+    if (strlen($phone) > 20) {
+        echo "Phone number must be 20 characters or fewer.";
+        exit();
+    }
+    if ($state_code !== null && !preg_match('/^[A-Z]{2}$/', $state_code)) {
+        echo "State must be a 2-letter code, for example CT.";
+        exit();
+    }
+    if ($post_code !== null && !preg_match('/^[0-9]{5}$/', $post_code)) {
+        echo "Zip code must be 5 digits.";
         exit();
     }
 

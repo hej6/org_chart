@@ -9,7 +9,8 @@ $db_connection->query(
     "CREATE TABLE `College` (
         `college_id` INT(11) NOT NULL AUTO_INCREMENT,
         `college_name` VARCHAR(50) NOT NULL,
-        PRIMARY KEY (`college_id`)
+        PRIMARY KEY (`college_id`),
+        UNIQUE KEY `uq_college_name` (`college_name`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 );
 

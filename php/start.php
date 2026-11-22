@@ -80,10 +80,10 @@ $db_connection->query(
      JOIN Job j              ON s.job_id = j.job_id
      JOIN Ranks r            ON s.rank_id = r.ranks_id
      JOIN Classification cl  ON r.class_id = cl.class_id
-     JOIN Organization o     ON s.org_id = o.org_id
-     LEFT JOIN Department d  ON s.dept_id = d.dept_id
+     JOIN Department d       ON s.dept_id = d.dept_id
+     JOIN Organization o     ON d.org_id = o.org_id
      LEFT JOIN Building b    ON d.building_id = b.building_id
-     LEFT JOIN College c     ON s.college_id = c.college_id
+     LEFT JOIN College c     ON d.college_id = c.college_id
      LEFT JOIN Staff sup     ON s.supervisor_id = sup.staff_id"
 );
 

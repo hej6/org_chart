@@ -40,21 +40,13 @@ $fields = [
         'Rank', true,
         'SELECT ranks_id AS id, ranks_title AS label FROM Ranks ORDER BY ranks_title'
     ],
-    'org_id' => [
-        'Organization', true,
-        'SELECT org_id AS id, org_name AS label FROM Organization ORDER BY org_name'
-    ],
     'supervisor_id' => [
         'Supervisor', false,
         "SELECT staff_id AS id, CONCAT(first_name, ' ', last_name) AS label
          FROM Staff ORDER BY last_name, first_name"
     ],
-    'college_id' => [
-        'College', false,
-        'SELECT college_id AS id, college_name AS label FROM College ORDER BY college_name'
-    ],
     'dept_id' => [
-        'Department', false,
+        'Department', true,
         'SELECT dept_id AS id, dept_name AS label FROM Department ORDER BY dept_name'
     ],
 ];
@@ -146,9 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $supervisor = $ids['supervisor_id'];
             $job = $ids['job_id'];
-            $college = $ids['college_id'];
             $rank = $ids['rank_id'];
-            $org = $ids['org_id'];
             $department = $ids['dept_id'];
 
             // Follow the reporting chain to prevent a circular assignment.
@@ -168,22 +158,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $db_connection->prepare(
                     'INSERT INTO Staff
                      (first_name, last_name, email, supervisor_id, job_id,
-                      college_id, rank_id, org_id, dept_id)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                      rank_id, dept_id)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)'
                 );
                 $stmt->bind_param(
-                    'sssiiiiii', $first, $last, $email, $supervisor,
-                    $job, $college, $rank, $org, $department
+                    'sssiiii', $first, $last, $email, $supervisor,
+                    $job, $rank, $department
                 );
             } else {
                 $stmt = $db_connection->prepare(
                     'UPDATE Staff SET first_name = ?, last_name = ?, email = ?,
-                     supervisor_id = ?, job_id = ?, college_id = ?, rank_id = ?,
-                     org_id = ?, dept_id = ? WHERE staff_id = ?'
+                     supervisor_id = ?, job_id = ?, rank_id = ?,
+                     dept_id = ? WHERE staff_id = ?'
                 );
                 $stmt->bind_param(
-                    'sssiiiiiii', $first, $last, $email, $supervisor,
-                    $job, $college, $rank, $org, $department, $id
+                    'sssiiiii', $first, $last, $email, $supervisor,
+                    $job, $rank, $department, $id
                 );
             }
 
@@ -201,6 +191,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (mysqli_sql_exception $e) {
         if ((int) $e->getCode() === 1451) {
             $error = 'This staff member is still referenced by another record. Reassign their direct reports before deleting them.';
+        } elseif ((int) $e->getCode() === 1062) {
+            $error = 'Another staff member already uses that email address.';
         } elseif ((int) $e->getCode() === 1452) {
             $error = 'A selected record is no longer available. Reload and try again.';
         } else {
@@ -298,7 +290,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </thead>
             <tbody>
             <?php if (!$staff): ?>
-                <tr><td colspan="9">No staff members found.</td></tr>
+                <tr><td colspan="7">No staff members found.</td></tr>
             <?php endif; ?>
             <?php foreach ($staff as $id => $row): ?>
                 <?php $name = $row['first_name'] . ' ' . $row['last_name']; ?>

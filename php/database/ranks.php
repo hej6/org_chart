@@ -14,7 +14,8 @@ $create_ranks = $db_connection->prepare(
         max_salary decimal(8,2) NOT NULL,
         class_id int(11) NOT NULL,
         FOREIGN KEY(class_id) REFERENCES Classification(class_id),
-        PRIMARY KEY(ranks_id));");
+        CONSTRAINT chk_ranks_salary CHECK (min_salary <= max_salary),
+        PRIMARY KEY(ranks_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 $create_ranks->execute();
 $create_ranks->close();
 

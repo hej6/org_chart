@@ -11,10 +11,11 @@ $create_users = $db_connection->prepare(
         user_id int NOT NULL AUTO_INCREMENT,
         role_id int NOT NULL,
         contact_id int NOT NULL,
-	    creation_date timestamp,
+	    creation_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	    PRIMARY KEY(user_id),
+        UNIQUE KEY uq_users_contact (contact_id),
         FOREIGN KEY(role_id) REFERENCES Roles(role_id),
-        FOREIGN KEY(contact_id) REFERENCES Contacts(contact_id));");
+        FOREIGN KEY(contact_id) REFERENCES Contacts(contact_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 $create_users->execute();
 $create_users->close();
 
