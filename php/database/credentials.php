@@ -24,26 +24,22 @@ $insert_credentials = $db_connection->prepare(
 $insert_credentials->bind_param("sis", $username, $user_id, $password_salted);
 $username = "johndoe";
 $user_id = 1;
-$password_salted = crypt("SCSU2024", $salt);
-//$password_salted = password_hash("password123", PASSWORD_DEFAULT);
+$password_salted = password_hash("SCSU2024", PASSWORD_DEFAULT);
 $insert_credentials->execute();
 
 $user_id = 2;
 $username = "janesmith";
-$password_salted = crypt("SCSU2025", $salt);
-//$password_salted = password_hash("mypassword", PASSWORD_DEFAULT);
+$password_salted = password_hash("SCSU2025", PASSWORD_DEFAULT);
 $insert_credentials->execute();
 
 $user_id = 3;
 $username = "charliebrown";
-$password_salted = crypt("SCSU2026", $salt);
-//$password_salted = password_hash("charlie123", PASSWORD_DEFAULT);
+$password_salted = password_hash("SCSU2026", PASSWORD_DEFAULT);
 $insert_credentials->execute();
 
 $user_id = 4;
 $username = "jjmCSC540";
-$password_salted = crypt("SCSU2026", $salt);
-//$password_salted = password_hash("admin123", PASSWORD_DEFAULT);
+$password_salted = password_hash("SCSU2026", PASSWORD_DEFAULT);
 $insert_credentials->execute();
 
 $insert_credentials->close();

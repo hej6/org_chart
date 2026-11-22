@@ -7,8 +7,6 @@ include_once (realpath(dirname(__FILE__).'/path.php'));
 include_once (realpath(dirname(__FILE__).'/config.php'));
 include_once (realpath(dirname(__FILE__).'/config.local.php'));
 
-/* Salt used for seasoning */
-$salt = SALT;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // collect value of input field
@@ -85,8 +83,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $insert_user->close();
 
             // Insert into Credentials table with hashed password
-            //$hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $password_salted = crypt($password, $salt);
+            // password_hash() generates a unique salt for each password
+            $password_salted = password_hash($password, PASSWORD_DEFAULT);
             $insert_credential = $db_connection->prepare("INSERT INTO Credentials (user_id, username, password_salted) VALUES (?, ?, ?)");
             $insert_credential->bind_param("iss", $user_id, $username, $password_salted);
 

@@ -34,7 +34,7 @@
               <input type="email" class="form-control" id="email" placeholder="Enter Email Address" name="email" required>
             </div>
             <div class="input-group mb-3">
-              <input type="tel" class="form-control" id="phone" placeholder="Enter Phone Number" name="phone" required>
+              <input type="tel" class="form-control" id="phone" placeholder="Enter Phone Number" name="phone" maxlength="20" required>
             </div>
             <div class="input-group mb-3">
               <input type="text" class="form-control" id="username" aria-describedby="username" placeholder="Enter username" name="username" required>
@@ -52,10 +52,10 @@
               <input type="text" class="form-control" id="city" placeholder="Enter City" name="city" >
             </div>
             <div class="input-group mb-3">
-              <input type="text" class="form-control" id="state" placeholder="Enter State" name="state" >
+              <input type="text" class="form-control" id="state" placeholder="State (e.g. CT)" name="state" maxlength="2" pattern="[A-Za-z]{2}" title="2-letter state code" >
             </div>
             <div class="input-group mb-3">
-              <input type="text" class="form-control" id="zip" placeholder="Enter Zip Code" name="zip" >
+              <input type="text" class="form-control" id="zip" placeholder="Enter Zip Code" name="zip" maxlength="5" pattern="[0-9]{5}" inputmode="numeric" title="5-digit zip code" >
             </div>
             <?php
               /* Error Message */
