@@ -80,4 +80,17 @@ $post_code = "06515"; // quoted: a bare 06515 is an octal number in PHP
 $updated = date("Y-m-d H:i:s");
 $insert_contacts->execute();
 
+$contact_id = 5;
+$last_name = "User";
+$first_name = "Test";
+$email = "testuser@example.com";
+$phone = "123-456-7890";
+$street_1 = "987 Mulholland Drive";
+$street_2 = "";
+$city = "Los Angeles";
+$state_code = "CA";
+$post_code = "90068";
+$updated = date("Y-m-d H:i:s");
+$insert_contacts->execute();
+
 $insert_contacts->close();

@@ -67,6 +67,8 @@ foreach ($db_connection->query(
 }
 
 $editId = 0;
+$restoreId = 0;      // archive_id being restored, if any
+$restoreNotes = [];  // fields that could not be matched when restoring
 $form = array_fill_keys(
     array_merge(['first_name', 'last_name', 'email'], array_keys($fields)),
     ''
@@ -82,12 +84,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new InvalidArgumentException('Reload the page and try again.');
         }
 
-        if (!in_array($action, ['add', 'update', 'delete'], true)) {
+        if (!in_array($action, ['add', 'update', 'delete', 'archive', 'restore'], true)) {
             throw new InvalidArgumentException('Invalid staff action.');
         }
 
-        if ($action !== 'add' && ($id === false || !isset($staff[$id]))) {
+        if (in_array($action, ['update', 'delete', 'archive'], true) &&
+            ($id === false || !isset($staff[$id]))) {
             throw new InvalidArgumentException('That staff record no longer exists.');
+        }
+
+        // Restore: the archived record must still exist
+        $archiveRow = null;
+        if ($action === 'restore') {
+            $restoreId = staffId($_POST['archive_id'] ?? '') ?: 0;
+            $stmt = $db_connection->prepare('SELECT * FROM ArchivedStaff WHERE archive_id = ?');
+            $stmt->bind_param('i', $restoreId);
+            $stmt->execute();
+            $archiveRow = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+            if (!$archiveRow) {
+                $restoreId = 0;
+                throw new InvalidArgumentException('That archived record no longer exists.');
+            }
         }
 
         if ($action === 'delete') {
@@ -97,6 +115,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['staff_success'] = $stmt->affected_rows
                 ? 'Staff member deleted.'
                 : 'That staff record no longer exists.';
+        } elseif ($action === 'archive') {
+            // Copy the staff member into ArchivedStaff, then remove them from Staff.
+            // One transaction, so they can never end up in both tables or neither.
+            $db_connection->begin_transaction();
+            try {
+                $archivedBy = (string) ($_SESSION['user_name'] ?? '');
+                $stmt = $db_connection->prepare(
+                    'INSERT INTO ArchivedStaff
+                     (staff_id, first_name, last_name, email, job_title, ranks_title,
+                      class_name, dept_name, org_name, college_name, supervisor_name,
+                      job_id, rank_id, dept_id, supervisor_id, archived_by)
+                     SELECT v.staff_id, v.first_name, v.last_name, v.email, v.job_title,
+                            v.ranks_title, v.class_name, v.dept_name, v.org_name,
+                            v.college_name, v.supervisor_name,
+                            v.job_id, v.ranks_id, v.dept_id, s.supervisor_id, ?
+                     FROM vw_staff_directory v
+                     JOIN Staff s ON s.staff_id = v.staff_id
+                     WHERE v.staff_id = ?'
+                );
+                $stmt->bind_param('si', $archivedBy, $id);
+                $stmt->execute();
+                $stmt->close();
+
+                // Fails with error 1451 if they still supervise someone
+                $stmt = $db_connection->prepare('DELETE FROM Staff WHERE staff_id = ?');
+                $stmt->bind_param('i', $id);
+                $stmt->execute();
+                $db_connection->commit();
+            } catch (mysqli_sql_exception $e) {
+                $db_connection->rollback();
+                throw $e;
+            }
+            $_SESSION['staff_success'] = 'Staff member archived.';
         } else {
             $editId = $action === 'update' ? $id : 0;
 
@@ -154,7 +205,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $visited[$current] = true;
             }
 
-            if ($action === 'add') {
+            if ($action === 'restore') {
+                // Put them back with their original staff_id (AUTO_INCREMENT never
+                // reuses IDs, so it is normally still free), then remove the archive row.
+                $originalId = (int) $archiveRow['staff_id'];
+                $newId = isset($staff[$originalId]) ? null : $originalId;
+                $db_connection->begin_transaction();
+                try {
+                    $stmt = $db_connection->prepare(
+                        'INSERT INTO Staff
+                         (staff_id, first_name, last_name, email, supervisor_id, job_id,
+                          rank_id, dept_id)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                    );
+                    $stmt->bind_param(
+                        'isssiiii', $newId, $first, $last, $email, $supervisor,
+                        $job, $rank, $department
+                    );
+                    $stmt->execute();
+                    $stmt->close();
+
+                    $stmt = $db_connection->prepare('DELETE FROM ArchivedStaff WHERE archive_id = ?');
+                    $stmt->bind_param('i', $restoreId);
+                    $stmt->execute();
+                    $db_connection->commit();
+                } catch (mysqli_sql_exception $e) {
+                    $db_connection->rollback();
+                    throw $e;
+                }
+            } elseif ($action === 'add') {
                 $stmt = $db_connection->prepare(
                     'INSERT INTO Staff
                      (first_name, last_name, email, supervisor_id, job_id,
@@ -177,10 +256,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 );
             }
 
-            $stmt->execute();
-            $_SESSION['staff_success'] = $action === 'add'
-                ? 'Staff member added.'
-                : 'Staff update completed.';
+            if ($action !== 'restore') {
+                $stmt->execute();
+            }
+            $_SESSION['staff_success'] = [
+                'add' => 'Staff member added.',
+                'update' => 'Staff update completed.',
+                'restore' => 'Staff member restored to the org chart.',
+            ][$action];
         }
 
         $stmt->close();
@@ -190,7 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = $e->getMessage();
     } catch (mysqli_sql_exception $e) {
         if ((int) $e->getCode() === 1451) {
-            $error = 'This staff member is still referenced by another record. Reassign their direct reports before deleting them.';
+            $error = 'This staff member is still referenced by another record. Reassign their direct reports before deleting or archiving them.';
         } elseif ((int) $e->getCode() === 1062) {
             $error = 'Another staff member already uses that email address.';
         } elseif ((int) $e->getCode() === 1452) {
@@ -208,7 +291,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $error = 'Staff member not found.';
     }
+} elseif (isset($_GET['restore'])) {
+    // Pre-fill the form from an archived record. Match each choice by its
+    // original ID first, then by name; anything unmatched is left for the admin.
+    $restoreId = staffId($_GET['restore']) ?: 0;
+    $stmt = $db_connection->prepare('SELECT * FROM ArchivedStaff WHERE archive_id = ?');
+    $stmt->bind_param('i', $restoreId);
+    $stmt->execute();
+    $archiveRow = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$archiveRow) {
+        $restoreId = 0;
+        $error = 'Archived record not found.';
+    } else {
+        $form['first_name'] = $archiveRow['first_name'];
+        $form['last_name'] = $archiveRow['last_name'];
+        $form['email'] = $archiveRow['email'];
+
+        $matches = [
+            // form field => [original ID, original name]
+            'job_id' => [$archiveRow['job_id'], $archiveRow['job_title']],
+            'rank_id' => [$archiveRow['rank_id'], $archiveRow['ranks_title']],
+            'dept_id' => [$archiveRow['dept_id'], $archiveRow['dept_name']],
+            'supervisor_id' => [$archiveRow['supervisor_id'], $archiveRow['supervisor_name']],
+        ];
+        foreach ($matches as $key => [$oldId, $oldName]) {
+            if ($oldId === null && $oldName === null) {
+                continue; // nothing to match (e.g. they had no supervisor)
+            }
+            if ($oldId !== null && isset($options[$key][(int) $oldId])) {
+                $form[$key] = (string) $oldId;
+            } elseif ($oldName !== null && ($found = array_search($oldName, $options[$key], true)) !== false) {
+                $form[$key] = (string) $found;
+            } else {
+                $restoreNotes[] = $fields[$key][0] . ' (was ' . ($oldName ?? 'unknown') . ')';
+            }
+        }
+    }
 }
+
+// Archived staff, newest first
+$archived = $db_connection->query(
+    'SELECT * FROM ArchivedStaff ORDER BY archived_at DESC, archive_id DESC'
+)->fetch_all(MYSQLI_ASSOC);
 ?>
 <!doctype html>
 <html lang="en">
@@ -229,11 +355,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p class="alert alert-danger" role="alert"><?= staffEscape($error) ?></p>
     <?php endif; ?>
 
-    <h2><?= $editId ? 'Edit Staff Member' : 'Add Staff Member' ?></h2>
+    <h2><?= $restoreId ? 'Restore Staff Member' : ($editId ? 'Edit Staff Member' : 'Add Staff Member') ?></h2>
+    <?php if ($restoreId && $restoreNotes): ?>
+        <p class="alert alert-warning" role="status">
+            These no longer exist, so choose a replacement:
+            <?= staffEscape(implode(', ', $restoreNotes)) ?>
+        </p>
+    <?php elseif ($restoreId): ?>
+        <p class="text-muted">Check the details below, then restore them to the org chart.</p>
+    <?php endif; ?>
     <form method="post" action="staff.php" class="mb-4">
         <input type="hidden" name="token" value="<?= staffEscape($_SESSION['staff_token']) ?>">
-        <input type="hidden" name="action" value="<?= $editId ? 'update' : 'add' ?>">
+        <input type="hidden" name="action" value="<?= $restoreId ? 'restore' : ($editId ? 'update' : 'add') ?>">
         <input type="hidden" name="staff_id" value="<?= $editId ?>">
+        <input type="hidden" name="archive_id" value="<?= $restoreId ?>">
 
         <?php foreach ([
             'first_name' => ['First name', 'text', 50],
@@ -268,9 +403,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endforeach; ?>
 
         <button class="btn btn-primary" type="submit">
-            <?= $editId ? 'Save Changes' : 'Add Staff Member' ?>
+            <?= $restoreId ? 'Restore Staff Member' : ($editId ? 'Save Changes' : 'Add Staff Member') ?>
         </button>
-        <?php if ($editId): ?>
+        <?php if ($editId || $restoreId): ?>
             <a href="staff.php">Cancel</a>
         <?php endif; ?>
     </form>
@@ -312,6 +447,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="submit" class="btn btn-sm btn-danger"
                                     aria-label="Delete <?= staffEscape($name) ?>">Delete</button>
                         </form>
+                        <form method="post" action="staff.php" class="d-inline"
+                              onsubmit="return confirm('Archive this staff member? They will be removed from the org chart and listed under Archived Staff.');">
+                            <input type="hidden" name="token"
+                                   value="<?= staffEscape($_SESSION['staff_token']) ?>">
+                            <input type="hidden" name="action" value="archive">
+                            <input type="hidden" name="staff_id" value="<?= $id ?>">
+                            <button type="submit" class="btn btn-sm btn-secondary"
+                                    aria-label="Archive <?= staffEscape($name) ?>">Archive</button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Archived Staff</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Job</th>
+                    <th scope="col">Department</th>
+                    <th scope="col">Supervisor</th>
+                    <th scope="col">Archived</th>
+                    <th scope="col">Archived by</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php if (!$archived): ?>
+                <tr><td colspan="8">No archived staff.</td></tr>
+            <?php endif; ?>
+            <?php foreach ($archived as $row): ?>
+                <tr>
+                    <th scope="row"><?= staffEscape($row['first_name'] . ' ' . $row['last_name']) ?></th>
+                    <td><?= staffEscape($row['email']) ?></td>
+                    <td><?= staffEscape($row['job_title']) ?></td>
+                    <td><?= staffEscape($row['dept_name']) ?></td>
+                    <td><?= staffEscape($row['supervisor_name'] ?? 'None') ?></td>
+                    <td><?= staffEscape($row['archived_at']) ?></td>
+                    <td><?= staffEscape($row['archived_by']) ?></td>
+                    <td>
+                        <a class="btn btn-sm btn-primary"
+                           href="staff.php?restore=<?= (int) $row['archive_id'] ?>"
+                           aria-label="Restore <?= staffEscape($row['first_name'] . ' ' . $row['last_name']) ?>">Restore</a>
                     </td>
                 </tr>
             <?php endforeach; ?>

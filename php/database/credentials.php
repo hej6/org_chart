@@ -42,4 +42,9 @@ $username = "jjmCSC540";
 $password_salted = password_hash("SCSU2026", PASSWORD_DEFAULT);
 $insert_credentials->execute();
 
+$user_id = 5;
+$username = "user";
+$password_salted = password_hash("test", PASSWORD_DEFAULT);
+$insert_credentials->execute();
+
 $insert_credentials->close();

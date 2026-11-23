@@ -48,4 +48,10 @@ $contact_id = 4;
 $creation_date = date("Y-m-d H:i:s");
 $insert_users->execute();
 
+$user_id = 5;
+$role_id = 2;
+$contact_id = 5;
+$creation_date = date("Y-m-d H:i:s");
+$insert_users->execute();
+
 $insert_users->close();

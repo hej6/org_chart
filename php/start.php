@@ -63,6 +63,10 @@ require __DIR__ . '/database/building.php';
 require __DIR__ . '/database/department.php';
 require __DIR__ . '/database/staff.php';
 
+// ARCHIVES (no foreign keys, so order does not matter)
+require __DIR__ . '/database/archived_staff.php';
+require __DIR__ . '/database/archived_users.php';
+
 //VIEW FOR USER STAFF DIRECTORY
 /* Views: must run AFTER all tables are created and seeded */
 $db_connection->query(
