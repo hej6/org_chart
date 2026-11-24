@@ -4,8 +4,8 @@
  *
  * @author    Jackie Isabella <
  * @copyright 2026 
- * @date      2026-11-16
- * @version   2.0
+ * @date      2026-11-24
+ * @version   3.0
  */
 // Make sure BASE_URL is defined, so the links below work from any folder
 if (!defined('BASE_URL')) {
@@ -52,15 +52,16 @@ if (!isset($_SESSION)) {
         <?php
           /* User Information */
           if (isset($_SESSION['user_name']) && $_SESSION['user_role'] == 2) {
-            echo '<li class="nav-item"><a class="nav-link" href="/org_chart/user/index.php">User Dashboard</a></li>';
+            echo '<li class="nav-item"><a class="nav-link" href="/org_chart/user/index.php">ORG Chart Home</a></li>';
             echo '<li class="nav-item dropdown">';
             echo '<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Browse</a>';
             echo '<ul class="dropdown-menu">';
             echo '<li><a class="dropdown-item" href="/org_chart/user/staff.php">Staff Directory</a></li>';
-            echo '<li><a class="dropdown-item" href="/org_chart/user/colleges.php">Divisions, Colleges &amp; Departments</a></li>';
+            echo '<li><a class="dropdown-item" href="/org_chart/user/divisions.php">Divisions, Colleges &amp; Departments</a></li>';
             echo '<li><a class="dropdown-item" href="/org_chart/user/classifications.php">Classifications &amp; Ranks</a></li>';
             echo '</ul>';
             echo '</li>';
+            echo '<li class="nav-item"><a class="nav-link" href="/org_chart/user/account.php">My Account</a></li>';
          }
         ?>
         <?php
