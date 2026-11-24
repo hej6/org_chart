@@ -77,7 +77,6 @@ if (!isset($_SESSION)) {
             /* User Information */
             if (isset($_SESSION['user_first']) && isset($_SESSION['user_type'])) {
                 echo 'Welcome ' . $_SESSION['user_first'] . ' (' . $_SESSION['user_type'] . ')';
-                echo ' | <a href="' . BASE_URL . '/account.php">My Account</a>';
                 echo ' | <a href="' . BASE_URL . '/php/logout.php">Logout</a>';
             } else {
                 echo 'Not Logged In';
