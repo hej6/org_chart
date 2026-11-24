@@ -1,6 +1,6 @@
 <?php
 /**
- * To show each division, college, dept and staff counts
+ * To show each division, its departments, and the staff in each department
  *
  * @author    Jackie Isabella <isabellaj2@southernct.edu>
  * @copyright 2026 
@@ -72,13 +72,19 @@ $staff_stmt = $db_connection->prepare(
                id="div-<?php echo $div['org_id']; ?>" role="tabpanel">
 
             <div class="card shadow-sm border-top-0">
-                            <img src="/org_chart/img/division_<?php echo $div['org_id']; ?>.jpg"
-                class="card-img-top"
-                style="width: 100%; aspect-ratio: 16 / 9; object-fit: cover;"
-                alt="<?php echo htmlspecialchars($div['org_name']); ?>">
+              <div class="position-relative">
+                <img src="/org_chart/img/division_<?php echo $div['org_id']; ?>.jpg"
+                     class="card-img-top"
+                     style="width: 100%; aspect-ratio: 3 / 1; object-fit: cover;"
+                     alt="<?php echo htmlspecialchars($div['org_name']); ?>">
+                <div class="card-img-overlay d-flex flex-column justify-content-end overlay-light">
+                  <div class="text-band py-4 px-4">
+                    <h2 class="card-title display-5 mb-0"><?php echo htmlspecialchars($div['org_name']); ?></h2>
+                  </div>
+                </div>
+              </div>
 
               <div class="card-body">
-                <h2 class="card-title h4"><?php echo htmlspecialchars($div['org_name']); ?></h2>
 
                 <?php
                   $dept_stmt->bind_param("i", $div['org_id']);
@@ -95,9 +101,11 @@ $staff_stmt = $db_connection->prepare(
                           <button class="accordion-button collapsed" type="button"
                                   data-bs-toggle="collapse"
                                   data-bs-target="#dept-<?php echo $dept['dept_id']; ?>">
-                            <?php echo htmlspecialchars($dept['dept_name']); ?>
-                            &nbsp;<span class="badge text-bg-secondary"><?php echo $dept['staff_count']; ?> staff</span>
-                            &nbsp;<small class="text-muted"><?php echo htmlspecialchars($dept['building_name'] ?? 'No building'); ?></small>
+                            <span><?php echo htmlspecialchars($dept['dept_name']); ?></span>
+                            <span class="flex-grow-1 d-flex justify-content-end align-items-center gap-2 me-3">
+                              <span class="text-muted" style="font-variant: small-caps; font-size: 1rem;"><?php echo htmlspecialchars($dept['building_name'] ?? 'No building'); ?></span>
+                              <span class="badge text-bg-secondary"><?php echo $dept['staff_count']; ?> staff</span>
+                            </span>
                           </button>
                         </h3>
                         <div id="dept-<?php echo $dept['dept_id']; ?>" class="accordion-collapse collapse"

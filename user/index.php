@@ -116,55 +116,8 @@ $college_count = $db_connection->query("SELECT COUNT(*) AS total FROM College")-
         </div>
 
       </div>
-      <!-- Your Account -->
-      <hr class="my-5">
-      <section class="mb-4 text-center">
-        <h2>Your Account</h2>
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">First</th>
-              <th scope="col">Last</th>
-              <th scope="col">Email</th>
-              <th scope="col">Username</th>
-              <th scope="col">Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php
-              $stmt = $db_connection->prepare(
-                "SELECT u.user_id, c.first_name, c.last_name, c.email, cr.username, r.role_type
-                 FROM Users u
-                 INNER JOIN Contacts c ON u.contact_id = c.contact_id
-                 INNER JOIN Credentials cr ON u.user_id = cr.user_id
-                 INNER JOIN Roles r ON u.role_id = r.role_id
-                 WHERE cr.username = ?"
-              );
-              $stmt->bind_param("s", $user_check);
-              $stmt->execute();
-              $result = $stmt->get_result();
-
-              if ($result->num_rows > 0) {
-                while ($row = $result->fetch_assoc()) {
-                  echo "<tr>";
-                  echo "<th scope='row'>" . $row["user_id"] . "</th>";
-                  echo "<td>" . htmlspecialchars($row["first_name"]) . "</td>";
-                  echo "<td>" . htmlspecialchars($row["last_name"]) . "</td>";
-                  echo "<td>" . htmlspecialchars($row["email"]) . "</td>";
-                  echo "<td>" . htmlspecialchars($row["username"]) . "</td>";
-                  echo "<td>" . htmlspecialchars($row["role_type"]) . "</td>";
-                  echo "</tr>";
-                }
-              } else {
-                echo "<tr><td colspan='6'>No account found</td></tr>";
-              }
-              $stmt->close();
-              $db_connection->close();
-            ?>
-          </tbody>
-        </table>
-      </section>
+      <!-- Close the database connection -->
+      <?php $db_connection->close(); ?>
 
     </main>
     <?php include_once (ROOT_PATH . '/include/footer.php'); ?>

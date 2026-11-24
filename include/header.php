@@ -4,8 +4,8 @@
  *
  * @author    Jackie Isabella <
  * @copyright 2026 
- * @date      2026-11-16
- * @version   2.0
+ * @date      2026-11-24
+ * @version   3.0
  */
 // 
 if (!isset($_SESSION)) {
@@ -58,6 +58,7 @@ if (!isset($_SESSION)) {
             echo '<li><a class="dropdown-item" href="/org_chart/user/classifications.php">Classifications &amp; Ranks</a></li>';
             echo '</ul>';
             echo '</li>';
+            echo '<li class="nav-item"><a class="nav-link" href="/org_chart/user/account.php">My Account</a></li>';
          }
         ?>
         <?php
