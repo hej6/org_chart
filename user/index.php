@@ -88,7 +88,7 @@ $college_count = $db_connection->query("SELECT COUNT(*) AS total FROM College")-
         </div>
 
         <div class="col-md-4">
-          <a href="/org_chart/user/colleges.php" class="text-decoration-none">
+          <a href="/org_chart/user/divisions.php" class="text-decoration-none">
             <div class="card text-bg-dark overflow-hidden shadow">
               <img src="/org_chart/img/colleges.jpg" class="card-img card-img-tile" alt="Divisions and Departments">
               <div class="card-img-overlay d-flex flex-column justify-content-end overlay-light">

@@ -49,12 +49,12 @@ if (!isset($_SESSION)) {
         <?php
           /* User Information */
           if (isset($_SESSION['user_name']) && $_SESSION['user_role'] == 2) {
-            echo '<li class="nav-item"><a class="nav-link" href="/org_chart/user/index.php">User Dashboard</a></li>';
+            echo '<li class="nav-item"><a class="nav-link" href="/org_chart/user/index.php">ORG Chart Home</a></li>';
             echo '<li class="nav-item dropdown">';
             echo '<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Browse</a>';
             echo '<ul class="dropdown-menu">';
             echo '<li><a class="dropdown-item" href="/org_chart/user/staff.php">Staff Directory</a></li>';
-            echo '<li><a class="dropdown-item" href="/org_chart/user/colleges.php">Divisions, Colleges &amp; Departments</a></li>';
+            echo '<li><a class="dropdown-item" href="/org_chart/user/divisions.php">Divisions, Colleges &amp; Departments</a></li>';
             echo '<li><a class="dropdown-item" href="/org_chart/user/classifications.php">Classifications &amp; Ranks</a></li>';
             echo '</ul>';
             echo '</li>';
