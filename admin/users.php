@@ -3,7 +3,7 @@
  * Manage Users
  *
  * Allows administrators to add users, change a user's password,
- * and archive or delete accounts.
+ * handle "Forgot Password" requests, and archive or delete accounts.
  * Archive: copies the account into ArchivedUsers, then removes it.
  * Delete:  removes it with no record kept.
  * Either way the user's Credentials (ON DELETE CASCADE) and Contacts row go too.
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!is_string($token) || !hash_equals($_SESSION['users_token'], $token)) {
             throw new InvalidArgumentException('Reload the page and try again.');
         }
-        if (!in_array($action, ['add', 'password', 'archive', 'delete'], true)) {
+        if (!in_array($action, ['add', 'password', 'dismiss', 'archive', 'delete'], true)) {
             throw new InvalidArgumentException('Invalid user action.');
         }
 
@@ -163,6 +163,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        if ($action === 'dismiss') {
+            // ---------- Dismiss a password reset request ----------
+            $requestId = usersId($_POST['request_id'] ?? '');
+            $resolvedBy = (string) ($_SESSION['user_name'] ?? '');
+            $stmt = $db_connection->prepare(
+                "UPDATE PasswordResetRequests
+                 SET resolved_at = CURRENT_TIMESTAMP, resolution = 'dismissed', resolved_by = ?
+                 WHERE request_id = ? AND resolved_at IS NULL"
+            );
+            $stmt->bind_param('si', $resolvedBy, $requestId);
+            $stmt->execute();
+            $dismissed = $stmt->affected_rows;
+            $stmt->close();
+
+            $_SESSION['users_success'] = $dismissed
+                ? 'Password reset request dismissed.'
+                : 'That request was already handled.';
+            header('Location: users.php');
+            exit;
+        }
+
         if ($id === false || !isset($users[$id])) {
             throw new InvalidArgumentException('That user no longer exists.');
         }
@@ -176,12 +197,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $db_connection->prepare('UPDATE Credentials SET password_salted = ? WHERE user_id = ?');
-            $stmt->bind_param('si', $hash, $id);
-            $stmt->execute();
-            $stmt->close();
+            $resolvedBy = (string) ($_SESSION['user_name'] ?? '');
 
-            $_SESSION['users_success'] = 'Password changed for ' . $users[$id]['username'] . '.';
+            // Change the password and close any pending reset request, together
+            $db_connection->begin_transaction();
+            try {
+                $stmt = $db_connection->prepare('UPDATE Credentials SET password_salted = ? WHERE user_id = ?');
+                $stmt->bind_param('si', $hash, $id);
+                $stmt->execute();
+                $stmt->close();
+
+                $stmt = $db_connection->prepare(
+                    "UPDATE PasswordResetRequests
+                     SET resolved_at = CURRENT_TIMESTAMP, resolution = 'reset', resolved_by = ?
+                     WHERE user_id = ? AND resolved_at IS NULL"
+                );
+                $stmt->bind_param('si', $resolvedBy, $id);
+                $stmt->execute();
+                $resolved = $stmt->affected_rows;
+                $stmt->close();
+
+                $db_connection->commit();
+            } catch (mysqli_sql_exception $e) {
+                $db_connection->rollback();
+                throw $e;
+            }
+
+            $_SESSION['users_success'] = 'Password changed for ' . $users[$id]['username'] . '.'
+                . ($resolved ? ' Their password reset request is marked as resolved.' : '');
             header('Location: users.php');
             exit;
         }
@@ -253,6 +296,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Pending password reset requests, oldest first
+$requests = $db_connection->query(
+    'SELECT p.request_id, p.user_id, p.requested_at, cr.username,
+            c.first_name, c.last_name, c.email, c.phone
+     FROM PasswordResetRequests p
+     INNER JOIN Users u ON p.user_id = u.user_id
+     INNER JOIN Contacts c ON u.contact_id = c.contact_id
+     INNER JOIN Credentials cr ON u.user_id = cr.user_id
+     WHERE p.resolved_at IS NULL
+     ORDER BY p.requested_at, p.request_id'
+)->fetch_all(MYSQLI_ASSOC);
+
 // Archived users, newest first
 $archived = $db_connection->query(
     'SELECT * FROM ArchivedUsers ORDER BY archived_at DESC, archive_id DESC'
@@ -299,6 +354,52 @@ $archived = $db_connection->query(
             </form>
         </section>
     <?php endif; ?>
+
+    <section class="mb-4">
+        <h2>Password Reset Requests</h2>
+        <p class="text-muted">From the Forgot Password page. Reset the password, then give the user
+            their new password in person or by phone.</p>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Username</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Phone</th>
+                        <th scope="col">Requested</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php if (!$requests): ?>
+                    <tr><td colspan="6">No pending requests.</td></tr>
+                <?php endif; ?>
+                <?php foreach ($requests as $req): ?>
+                    <tr>
+                        <th scope="row"><?= usersEscape($req['username']) ?></th>
+                        <td><?= usersEscape($req['first_name'] . ' ' . $req['last_name']) ?></td>
+                        <td><?= usersEscape($req['email']) ?></td>
+                        <td><?= usersEscape($req['phone']) ?></td>
+                        <td><?= usersEscape($req['requested_at']) ?></td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" href="users.php?password=<?= (int) $req['user_id'] ?>"
+                               aria-label="Reset password for <?= usersEscape($req['username']) ?>">Reset Password</a>
+                            <form method="post" action="users.php" class="d-inline"
+                                  onsubmit="return confirm('Dismiss this request without changing the password?');">
+                                <input type="hidden" name="token" value="<?= usersEscape($_SESSION['users_token']) ?>">
+                                <input type="hidden" name="action" value="dismiss">
+                                <input type="hidden" name="request_id" value="<?= (int) $req['request_id'] ?>">
+                                <button type="submit" class="btn btn-sm btn-secondary"
+                                        aria-label="Dismiss request from <?= usersEscape($req['username']) ?>">Dismiss</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
     <section class="mb-4">
         <h2>Add User</h2>

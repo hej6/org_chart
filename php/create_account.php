@@ -32,6 +32,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $post_code = $post_code === '' ? null : $post_code;
 
     // Match the Contacts column sizes: phone VARCHAR(20), state CHAR(2), post_code CHAR(5)
+    // password_hash() ignores anything past 72 bytes
+    if (strlen($password) > 72) {
+        echo "Password must be 72 characters or fewer.";
+        exit();
+    }
     if (strlen($phone) > 20) {
         echo "Phone number must be 20 characters or fewer.";
         exit();

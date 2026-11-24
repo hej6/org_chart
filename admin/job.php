@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Redirect so refreshing does not repeat a database change.
-            header('Location: Job.php');
+            header('Location: job.php');
             exit;
         } catch (mysqli_sql_exception $e) {
             if ((int) $e->getCode() === 1451) {
@@ -182,7 +182,7 @@ $Jobs = $db_connection->query(
     <section class="mb-4">
         <h2><?php echo $edit_id > 0 ? 'Edit Job' : 'Add Job'; ?></h2>
 
-        <form method="post" action="Job.php">
+        <form method="post" action="job.php">
             <input type="hidden" name="token"
                    value="<?php echo escapeJob($_SESSION['Job_token']); ?>">
 
@@ -210,7 +210,7 @@ $Jobs = $db_connection->query(
             </button>
 
             <?php if ($edit_id > 0): ?>
-                <a href="Job.php" class="btn btn-secondary">Cancel</a>
+                <a href="job.php" class="btn btn-secondary">Cancel</a>
             <?php endif; ?>
         </form>
     </section>
@@ -244,13 +244,13 @@ $Jobs = $db_connection->query(
                             </td>
                             <td>
                                 <a class="btn btn-sm btn-primary"
-                                   href="Job.php?edit=<?php echo (int) $row['Job_id']; ?>"
+                                   href="job.php?edit=<?php echo (int) $row['Job_id']; ?>"
                                    aria-label="Edit <?php echo escapeJob($row['job_title']); ?>">
                                     Edit
                                 </a>
 
                                 <form method="post"
-                                      action="Job.php"
+                                      action="job.php"
                                       class="d-inline"
                                       onsubmit="return confirm('Delete this Job?');">
                                     <input type="hidden" name="token"

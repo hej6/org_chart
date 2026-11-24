@@ -49,7 +49,20 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
     <li class="list-inline-item"><a href="building.php">Manage Buildings</a></li>
     <li class="list-inline-item"><a href="job.php">Manage Jobs</a></li>
     <li class="list-inline-item"><a href="staff.php">Manage Staff</a></li>
-    <li class="list-inline-item"><a href="users.php">Manage Users</a></li>
+    <li class="list-inline-item"><a href="users.php">Manage Users</a><?php
+      // Show how many password reset requests are waiting
+      try {
+        $pending_requests = (int) $db_connection->query(
+          'SELECT COUNT(*) FROM PasswordResetRequests WHERE resolved_at IS NULL'
+        )->fetch_row()[0];
+        if ($pending_requests > 0) {
+          echo ' <span class="badge text-bg-warning">' . $pending_requests . ' password '
+            . ($pending_requests === 1 ? 'request' : 'requests') . '</span>';
+        }
+      } catch (mysqli_sql_exception $e) {
+        // Table missing (start.php not rerun yet): just show the link
+      }
+    ?></li>
     <li class="list-inline-item"><a href="department.php">Manage Departments</a></li>
     <li class="list-inline-item"><a href="organization.php">Manage Organizations</a></li>
     <li class="list-inline-item"><a href="college.php">Manage Colleges</a></li>

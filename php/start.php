@@ -52,6 +52,7 @@ require __DIR__ . '/database/roles.php';
 require __DIR__ . '/database/contacts.php';
 require __DIR__ . '/database/users.php';
 require __DIR__ . '/database/credentials.php';
+require __DIR__ . '/database/password_reset_requests.php';
 
 // STAFF (Org Chart)
 require __DIR__ . '/database/classification.php';
