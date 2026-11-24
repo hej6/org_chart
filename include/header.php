@@ -46,7 +46,7 @@ if (!isset($_SESSION)) {
           /* User Information */
           if (isset($_SESSION['user_name']) && $_SESSION['user_role'] == 1) { // Only display when user is logged in
             echo '<li class="nav-item"><a class="nav-link" href="' . BASE_URL . '/admin/index.php">Admin Dashboard</a></li>';
-            echo '<li class="nav-item"><a class="nav-link" href="#">New Page</a></li>';
+            echo '<li class="nav-item"><a class="nav-link" href="' . BASE_URL . '/user/staff.php">Staff Directory</a></li>';
           }
         ?>
         <?php
