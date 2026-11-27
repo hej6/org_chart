@@ -61,7 +61,7 @@ if (session_status() === PHP_SESSION_NONE) {
                 required>
             </div>
 
-            <?php include_once ROOT_PATH . '/php/error_rpt.php'; ?>
+            <?php include_once ROOT_PATH . '/php/error_rprt.php'; ?>
 
             <button type="submit" class="btn btn-primary">
               Log In
