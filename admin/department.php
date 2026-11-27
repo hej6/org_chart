@@ -222,7 +222,7 @@ $departments = $db_connection->query(
 <body class="<?php echo escapeDepartment($page_name); ?>">
 <?php require ROOT_PATH . '/include/header.php'; ?>
 
-<main class="container">
+<main class="container" id="main-content" tabindex="-1">
     <h1>Manage Departments</h1>
     <p><a href="index.php">Back to dashboard</a></p>
 

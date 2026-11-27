@@ -21,6 +21,12 @@ if (!isset($_SESSION)) {
 <?php
 // Header Section
 ?>
+
+<a href="#main-content" class="skip-link">
+  Skip to main content
+</a>
+
+
 <header class="mb-5">
 <?php
 // navigation bar

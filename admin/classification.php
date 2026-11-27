@@ -163,7 +163,7 @@ $classifications = $db_connection->query(
 <body class="<?php echo escapeClassification($page_name); ?>">
 <?php require ROOT_PATH . '/include/header.php'; ?>
 
-<main class="container">
+<main class="container" id="main-content" tabindex="-1">
     <h1>Manage Classifications</h1>
     <p><a href="index.php">Back to dashboard</a></p>
 

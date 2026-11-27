@@ -91,3 +91,23 @@ html[data-bs-theme="dark"] {
   background-color: var(--bs-body-bg);
   color: var(--bs-body-color);
 }
+
+/* Show the skip link when reached with the keyboard. */
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 2000;
+  padding: 0.75rem 1rem;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  border: 2px solid currentColor;
+  border-radius: 0.25rem;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 3px solid var(--bs-body-color);
+  outline-offset: 3px;
+}

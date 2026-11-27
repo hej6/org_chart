@@ -59,7 +59,7 @@ $college_count = $db_connection->query("SELECT COUNT(*) AS total FROM College")-
   <body class="<?php echo $page_name; ?>">
 
   <?php include_once (ROOT_PATH . '/include/header.php'); // Include header.php ?>
-    <main role="main" class="container">
+    <main class="container" id="main-content" tabindex="-1">
 
       <!-- Banner -->
       <div class="card text-bg-dark overflow-hidden shadow mb-4">

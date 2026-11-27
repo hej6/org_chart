@@ -321,7 +321,7 @@ $archived = $db_connection->query(
 <body class="admin">
 <?php require_once ROOT_PATH . '/include/header.php'; ?>
 
-<main class="container">
+<main class="container" id="main-content" tabindex="-1">
     <h1>Manage Users</h1>
     <p><a href="index.php">Back to dashboard</a></p>
 

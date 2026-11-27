@@ -32,7 +32,7 @@ ini_set('display_errors', 0); // set to 1 to display errors, 0 to hide them
   <body class="<?php echo $page_name; ?>">
 
   <?php include_once (ROOT_PATH . '/include/header.php'); ?>
-    <main role="main" class="container">
+    <main class="container" id="main-content" tabindex="-1">
 
     <div class="container text-center">
   <div class="row align-items-center">

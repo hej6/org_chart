@@ -47,7 +47,7 @@ $staff_stmt = $db_connection->prepare(
   <body class="<?php echo $page_name; ?>">
 
   <?php include_once (ROOT_PATH . '/include/header.php'); // Include header.php ?>
-    <main role="main" class="container">
+    <main class="container" id="main-content" tabindex="-1">
 
       <h1 class="mb-3">Divisions &amp; Departments</h1>
 
