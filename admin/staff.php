@@ -9,6 +9,7 @@ if ((int) ($user_role ?? 0) !== 1) {
 }
 
 require_once ROOT_PATH . '/php/config.php';
+require_once ROOT_PATH . '/php/staff_archive.php'; // archiveStaff()
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 $page_name = 'admin';
@@ -116,36 +117,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ? 'Staff member deleted.'
                 : 'That staff record no longer exists.';
         } elseif ($action === 'archive') {
-            // Copy the staff member into ArchivedStaff, then remove them from Staff.
-            // One transaction, so they can never end up in both tables or neither.
-            $db_connection->begin_transaction();
-            try {
-                $archivedBy = (string) ($_SESSION['user_name'] ?? '');
-                $stmt = $db_connection->prepare(
-                    'INSERT INTO ArchivedStaff
-                     (staff_id, first_name, last_name, email, job_title, ranks_title,
-                      class_name, dept_name, org_name, college_name, supervisor_name,
-                      job_id, rank_id, dept_id, supervisor_id, archived_by)
-                     SELECT v.staff_id, v.first_name, v.last_name, v.email, v.job_title,
-                            v.ranks_title, v.class_name, v.dept_name, v.org_name,
-                            v.college_name, v.supervisor_name,
-                            v.job_id, v.ranks_id, v.dept_id, s.supervisor_id, ?
-                     FROM vw_staff_directory v
-                     JOIN Staff s ON s.staff_id = v.staff_id
-                     WHERE v.staff_id = ?'
-                );
-                $stmt->bind_param('si', $archivedBy, $id);
-                $stmt->execute();
-                $stmt->close();
-
-                // Fails with error 1451 if they still supervise someone
-                $stmt = $db_connection->prepare('DELETE FROM Staff WHERE staff_id = ?');
-                $stmt->bind_param('i', $id);
-                $stmt->execute();
-                $db_connection->commit();
-            } catch (mysqli_sql_exception $e) {
-                $db_connection->rollback();
-                throw $e;
+            // Copy into ArchivedStaff and remove from Staff, in one transaction
+            // (see php/staff_archive.php). Throws error 1451 if they still supervise someone.
+            $stmt = null;
+            if (!archiveStaff($db_connection, $id, (string) ($_SESSION['user_name'] ?? ''))) {
+                throw new InvalidArgumentException('That staff record no longer exists.');
             }
             $_SESSION['staff_success'] = 'Staff member archived.';
         } else {
@@ -266,7 +242,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ][$action];
         }
 
-        $stmt->close();
+        if ($stmt instanceof mysqli_stmt) {
+            $stmt->close();
+        }
         header('Location: staff.php');
         exit;
     } catch (InvalidArgumentException $e) {

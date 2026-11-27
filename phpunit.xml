@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PHPUnit configuration. From the project folder, run every test with:
+      php tools/phpunit.phar
+  (on XAMPP: C:\xampp\php\php.exe tools\phpunit.phar)
+  Run php/start.php first so the database tables exist.
+-->
+<phpunit bootstrap="tests/bootstrap.php"
+         colors="true"
+         testdox="true">
+    <testsuites>
+        <testsuite name="org_chart">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
