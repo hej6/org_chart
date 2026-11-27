@@ -39,3 +39,35 @@ fetchUsers();
 
 // Output "completed" to the console
 console.log("program completed");
+
+// Toggle the theme and remember the selection between pages.
+const themeToggle = document.getElementById('theme-toggle');
+
+if (themeToggle) {
+  function updateThemeButton() {
+    const darkMode =
+      document.documentElement.getAttribute('data-bs-theme') === 'dark';
+
+    themeToggle.textContent = darkMode ? 'Dark mode: On' : 'Dark mode: Off';
+    themeToggle.setAttribute('aria-pressed', String(darkMode));
+  }
+
+  themeToggle.addEventListener('click', function () {
+    const currentTheme =
+      document.documentElement.getAttribute('data-bs-theme');
+
+    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-bs-theme', nextTheme);
+
+    try {
+      localStorage.setItem('org-chart-theme', nextTheme);
+    } catch (error) {
+      // The button still works when browser storage is unavailable.
+    }
+
+    updateThemeButton();
+  });
+
+  updateThemeButton();
+  themeToggle.hidden = false;
+}

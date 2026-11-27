@@ -72,6 +72,20 @@ if (!isset($_SESSION)) {
           }
         ?>
       </ul>
+
+
+      <button
+  type="button"
+  id="theme-toggle"
+  class="btn btn-outline-secondary me-3 my-2"
+  aria-label="Dark mode"
+  aria-pressed="false"
+  hidden>
+  Dark mode
+</button>
+
+
+
       <span class="navbar-text">
         <?php
             /* User Information */

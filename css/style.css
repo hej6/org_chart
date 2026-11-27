@@ -35,7 +35,8 @@ body {
   font-style: normal;
   margin: 0;
   padding: 0;
-  background-color: #f4f4f4;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
 }
 /* //////////////// Landing page cards ////////////
 * Author: Jackie Isabella
@@ -71,3 +72,22 @@ body {
 /* Hover lift */
 .card { transition: transform 0.2s; }
 .card:hover { transform: translateY(-5px); }
+
+/* Preserve the existing light background. */
+html[data-bs-theme="light"] {
+  --bs-body-bg: #f4f4f4;
+}
+
+/* Match browser controls and the footer to the selected theme. */
+html[data-bs-theme="light"] {
+  color-scheme: light;
+}
+
+html[data-bs-theme="dark"] {
+  color-scheme: dark;
+}
+
+.footer {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}

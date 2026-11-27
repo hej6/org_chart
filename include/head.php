@@ -19,6 +19,22 @@
 
 ?>
 <meta charset="utf-8">
+<script>
+(function () {
+  let theme = 'light';
+
+  try {
+    const savedTheme = localStorage.getItem('org-chart-theme');
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      theme = savedTheme;
+    }
+  } catch (error) {
+    // Use light mode when browser storage is unavailable.
+  }
+
+  document.documentElement.setAttribute('data-bs-theme', theme);
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description" content="Website to show authentication">
 <meta name="author" content="CSC 540 Team Project">
