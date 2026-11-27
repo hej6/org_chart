@@ -1,54 +1,86 @@
 <?php
 /**
- * login Page
+ * Login Page
  *
  * @author    Joshua Connor <connorj4@southernct.edu>
- * @copyright 2026 
+ * @copyright 2026
  * @date      2026-02-24
  * @version   1.0
  */
-  /* Quick Paths */
-  include_once (realpath(dirname(__FILE__).'/php/path.php'));
 
+/* Quick Paths */
+include_once __DIR__ . '/php/path.php';
 
-  /* Page Name */
-  $page_name = "home";
+/* Page Name */
+$page_name = 'home';
 
-  /* Start The Session */
-  session_start(); 
-
+/* Start The Session */
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
 <!doctype html>
 <html lang="en">
   <head>
-    <?php include_once "./include/head.php"; ?>
+    <?php include_once __DIR__ . '/include/head.php'; ?>
   </head>
   <body>
-    <?php include_once "./include/header.php"; ?>
-    <main role="main" class="container">
+    <?php include_once __DIR__ . '/include/header.php'; ?>
+
+    <main role="main" class="container" id="main-content" tabindex="-1">
       <div class="row justify-content-sm-center">
         <div class="col-sm-4">
           <h1>Login</h1>
+
           <form action="./php/authenticate.php" method="post">
             <div class="input-group mb-3">
-              <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="username" placeholder="Username" name="username" required>
+              <label for="login-username" class="visually-hidden">
+                Username
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="login-username"
+                name="username"
+                placeholder="Username"
+                autocomplete="username"
+                required>
             </div>
+
             <div class="input-group mb-3">
-              <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" name="password" required>
+              <label for="login-password" class="visually-hidden">
+                Password
+              </label>
+              <input
+                type="password"
+                class="form-control"
+                id="login-password"
+                name="password"
+                placeholder="Password"
+                autocomplete="current-password"
+                required>
             </div>
-            
-            <?php include_once (ROOT_PATH . '/php/error_rprt.php'); ?>
-            <button type="submit" class="btn btn-primary">Log In</button>
+
+            <?php include_once ROOT_PATH . '/php/error_rpt.php'; ?>
+
+            <button type="submit" class="btn btn-primary">
+              Log In
+            </button>
           </form>
-          <hr />
+
+          <hr>
+
           <p class="text-center">
-              <small>
-                <a href="./create_account.php">Create An Account</a> | <a href="./forgot_pass.php">Forgot Password</a>
-              </small>
+            <small>
+              <a href="./create_account.php">Create An Account</a>
+              |
+              <a href="./forgot_pass.php">Forgot Password</a>
+            </small>
           </p>
         </div>
       </div>
     </main>
-    <?php include_once "./include/footer.php"; ?>
+
+    <?php include_once __DIR__ . '/include/footer.php'; ?>
   </body>
 </html>

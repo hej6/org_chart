@@ -58,7 +58,7 @@
   </head>
   <body>
     <?php include_once "./include/header.php"; ?>
-    <main role="main" class="container">
+    <main role="main" class="container" id="main-content" tabindex="-1">
       <div class="row justify-content-sm-center">
         <div class="col-sm-4">
           <h1>Account Recovery</h1>
