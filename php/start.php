@@ -41,7 +41,6 @@ if ($result = $db_connection->query("SHOW TABLES")) {
 }
 $db_connection->query('SET foreign_key_checks = 1');
 
-$salt = SALT;
 define('DB_SETUP_RUNNING', true);
 echo nl2br("Table creation and seed data initialization started.\r\n");
 
